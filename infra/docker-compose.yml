@@ -1,0 +1,57 @@
+version: "3.9"
+
+name: opentelemetry-ecommerce-demo
+
+services:
+  product-api:
+    build:
+      context: ../services/product-api
+      dockerfile: Dockerfile
+    container_name: product-api
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      SERVICE_NAME: ecom.product.api
+      SERVICE_VERSION: ${SERVICE_VERSION}
+      HTTP_PORT: ${PRODUCT_HTTP_PORT}
+    ports:
+      - "${PRODUCT_HTTP_PORT}:${PRODUCT_HTTP_PORT}"
+    networks:
+      - observability
+
+  order-api:
+    build:
+      context: ../services/order-api
+      dockerfile: Dockerfile
+    container_name: order-api
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      SERVICE_NAME: ecom.order.api
+      SERVICE_VERSION: ${SERVICE_VERSION}
+      HTTP_PORT: ${ORDER_HTTP_PORT}
+      PRODUCT_API_BASE_URL: "http://product-api:${PRODUCT_HTTP_PORT}"
+    ports:
+      - "${ORDER_HTTP_PORT}:${ORDER_HTTP_PORT}"
+    networks:
+      - observability
+    depends_on:
+      - product-api
+
+  payment-api:
+    build:
+      context: ../services/payment-api
+      dockerfile: Dockerfile
+    container_name: payment-api
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      SERVICE_NAME: ecom.payment.api
+      SERVICE_VERSION: ${SERVICE_VERSION}
+      HTTP_PORT: ${PAYMENT_HTTP_PORT}
+    ports:
+      - "${PAYMENT_HTTP_PORT}:${PAYMENT_HTTP_PORT}"
+    networks:
+      - observability
+
+networks:
+  observability:
+    name: observability
+    driver: bridge
