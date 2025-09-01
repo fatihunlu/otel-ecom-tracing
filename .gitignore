@@ -26,6 +26,15 @@ services/product-api/src/obj/
 # Kullanıcıya özel dosyalar
 services/product-api/src/*.user
 services/product-api/src/*.rsuser
+services/product-api/src/*.suo
+services/product-api/src/*.vsidx
+
+# Visual Studio local caches
+services/product-api/src/.vs/
+services/product-api/src/.vs/**
+services/product-api/src/.vs/**/*.db
+services/product-api/src/.vs/**/*.db-shm
+services/product-api/src/.vs/**/*.db-wal
 
 # Paket yönetimi
 services/product-api/src/packages/
@@ -57,6 +66,29 @@ services/payment-api/npm-debug.log*
 services/payment-api/yarn-error.log
 
 #############################
+# Visual Studio & Rider Caches
+#############################
+.vs/
+**/.vs/
+**/.vs/**
+**/.vs/**/*.db
+**/.vs/**/*.db-shm
+**/.vs/**/*.db-wal
+
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vsidx
+
+# JetBrains Rider
+.idea/
+**/.idea/**
+*.sln.iml
+*.ipr
+*.iws
+
+#############################
 # Logs & Temp
 #############################
 **/*.log
@@ -65,3 +97,5 @@ services/payment-api/yarn-error.log
 **/tmp/
 *.pid
 *.seed
+*.tmp
+*.temp
