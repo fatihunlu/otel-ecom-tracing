@@ -10,9 +10,13 @@ services:
     container_name: product-api
     environment:
       ENVIRONMENT: ${ENVIRONMENT}
-      SERVICE_NAME: ecom.product.api
       SERVICE_VERSION: ${SERVICE_VERSION}
       HTTP_PORT: ${PRODUCT_HTTP_PORT}
+
+      # OpenTelemetry
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_RESOURCE_ATTRIBUTES: service.name=ecom.product.api,service.version=${SERVICE_VERSION},deployment.environment=${ENVIRONMENT}
     ports:
       - "${PRODUCT_HTTP_PORT}:${PRODUCT_HTTP_PORT}"
     networks:
@@ -25,16 +29,21 @@ services:
     container_name: order-api
     environment:
       ENVIRONMENT: ${ENVIRONMENT}
-      SERVICE_NAME: ecom.order.api
       SERVICE_VERSION: ${SERVICE_VERSION}
       HTTP_PORT: ${ORDER_HTTP_PORT}
       PRODUCT_API_BASE_URL: "http://product-api:${PRODUCT_HTTP_PORT}"
+
+      # OpenTelemetry
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_RESOURCE_ATTRIBUTES: service.name=ecom.order.api,service.version=${SERVICE_VERSION},deployment.environment=${ENVIRONMENT}
     ports:
       - "${ORDER_HTTP_PORT}:${ORDER_HTTP_PORT}"
     networks:
       - observability
     depends_on:
       - product-api
+
 
   payment-api:
     build:
@@ -43,13 +52,66 @@ services:
     container_name: payment-api
     environment:
       ENVIRONMENT: ${ENVIRONMENT}
-      SERVICE_NAME: ecom.payment.api
       SERVICE_VERSION: ${SERVICE_VERSION}
       HTTP_PORT: ${PAYMENT_HTTP_PORT}
+
+      # OpenTelemetry
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_RESOURCE_ATTRIBUTES: service.name=ecom.payment.api,service.version=${SERVICE_VERSION},deployment.environment=${ENVIRONMENT}
     ports:
       - "${PAYMENT_HTTP_PORT}:${PAYMENT_HTTP_PORT}"
     networks:
       - observability
+
+
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.103.1
+    container_name: otel-collector
+    command: ["--config=/etc/otelcol/config.yml"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otelcol/config.yml:ro
+    # ports:   # host'a açmaya gerek yok; iç ağdan erişeceğiz
+    #   - "4317:4317"
+    #   - "4318:4318"
+    #   - "8888:8888"   # Prometheus'u host'tan görüntülemek istiyorsan aç
+    networks:
+      - observability
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"
+    networks:
+      - observability
+
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks: [observability]
+    depends_on: [otel-collector]
+
+  grafana:
+    image: grafana/grafana:10.4.8
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    networks: [observability]
+    depends_on: [prometheus]
 
 networks:
   observability:

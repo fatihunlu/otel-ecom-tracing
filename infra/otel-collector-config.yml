@@ -1,0 +1,33 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: # 4317
+      http: # 4318
+
+processors:
+  batch: {}
+
+exporters:
+  otlp:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  logging:
+    loglevel: info
+
+extensions:
+  health_check: {}
+  pprof: {}
+
+service:
+  extensions: [health_check, pprof]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp, logging]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging]
