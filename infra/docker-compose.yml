@@ -65,7 +65,6 @@ services:
       - observability
 
 
-
   otel-collector:
     image: otel/opentelemetry-collector:0.103.1
     container_name: otel-collector
