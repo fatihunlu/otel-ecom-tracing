@@ -44,5 +44,6 @@ var port = Environment.GetEnvironmentVariable("HTTP_PORT") ?? "5001";
 app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.MapGet("/health", () => new { status = "ok", service = "product-api" });
+app.MapGet("/products", () => new[] { "Keyboard", "Mouse", "Monitor" });
 
 app.Run();
